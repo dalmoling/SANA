@@ -17,7 +17,7 @@
 
 ## 📖 Sobre o Projeto
 
-O **SANA** (Sistema de Análise de Notas Acadêmicas) é uma aplicação web desenvolvida como Trabalho de Conclusão de Curso (TCC) do Instituto Federal Catarinense (IFC). O sistema oferece análises detalhadas do desempenho acadêmico de estudantes através de visualizações interativas e um chatbot inteligente powered by Google Gemini AI.
+O **SANA** (Sistema de Análise de Notas Acadêmicas) é uma aplicação web desenvolvida como Trabalho de Conclusão de Curso (TCC) por Gustavo Dalmolin, Aluno do Instituto Federal Catarinense (IFC). O sistema oferece análises detalhadas do desempenho acadêmico de estudantes através de visualizações interativas e um chatbot inteligente powered by Google Gemini AI.
 
 ### 🎯 Objetivo
 
