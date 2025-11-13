@@ -122,11 +122,11 @@ http://localhost:8080
 
 **Coordenador:**
 - Usuário: `coordenador`
-- Senha: `coord123`
+- Senha: `Coordenador@Ifc`
 
 **Professor:**
 - Usuário: `professor`
-- Senha: `prof123`
+- Senha: `professor123`
 
 ### Estrutura de Planilhas
 
