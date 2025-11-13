@@ -108,7 +108,7 @@ def fazer_pergunta_gemini(pergunta, contexto):
 
         # Usar modelo mais rápido e configurar para respostas otimizadas
         model = genai.GenerativeModel(
-            'gemini-2.0-flash-exp',
+            'gemini-2.5-flash-lite',
             generation_config={
                 'temperature': 0.7,
                 'top_p': 0.95,
@@ -885,7 +885,7 @@ Seja direto, objetivo e construtivo. Máximo 150 palavras.
     try:
         # Usar o modelo Gemini já configurado globalmente
         print(f"🔄 Gerando relatório IA para: {nome}")
-        gemini_model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        gemini_model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
         response = gemini_model.generate_content(prompt)
         resposta_texto = response.text.strip()
