@@ -1,4 +1,4 @@
-# 📊 SANA - Sistema de Análise de Notas Acadêmicas
+#  SANA - Sistema de Análise de Notas Acadêmicas
 
 <div align="center">
 
@@ -15,11 +15,11 @@
 
 ---
 
-## 📖 Sobre o Projeto
+##  Sobre o Projeto
 
 O **SANA** (Sistema de Análise de Notas Acadêmicas) é uma aplicação web desenvolvida como Trabalho de Conclusão de Curso (TCC) por Gustavo Dalmolin, Aluno do Instituto Federal Catarinense (IFC). O sistema oferece análises detalhadas do desempenho acadêmico de estudantes através de visualizações interativas e um chatbot inteligente powered by Google Gemini AI.
 
-### 🎯 Objetivo
+###  Objetivo
 
 Facilitar o acompanhamento pedagógico através de:
 - Análise automatizada de dados acadêmicos
@@ -30,7 +30,7 @@ Facilitar o acompanhamento pedagógico através de:
 
 ---
 
-## ✨ Características
+##  Características
 
 ### 🤖 Chatbot Inteligente
 - Integração com **Google Gemini AI** (gemini-2.0-flash-exp)
@@ -245,20 +245,6 @@ O sistema detecta automaticamente em qual trimestre a turma se encontra:
 - Calcula estatísticas comparativas
 - Ranking de turmas por desempenho
 
----
-
-## 📊 Capturas de Tela
-
-### Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
-
-### Chatbot
-![Chatbot](docs/screenshots/chatbot.png)
-
-### Comparação de Turmas
-![Comparação](docs/screenshots/comparacao.png)
-
----
 
 ## 🤝 Contribuição
 
@@ -272,44 +258,21 @@ Contribuições são bem-vindas! Para contribuir:
 
 ---
 
-## 📝 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
-
 ## 👨‍💻 Autor
 
-**Seu Nome**
-- GitHub: [@seu-usuario](https://github.com/seu-usuario)
-- LinkedIn: [Seu Nome](https://linkedin.com/in/seu-perfil)
-- Email: seu.email@exemplo.com
+**Gustavo Dalmolin**
+- GitHub: [@dalmoling](https://github.com/dalmoling)
+- Email: gustavo.dalmolin@estudantes.ifc.edu.br
 
 ---
 
-## 🙏 Agradecimentos
-
-- Instituto Federal Catarinense (IFC)
-- Orientador(a): [Nome do Orientador]
-- Google Gemini AI
-- Comunidade Open Source
-
----
 
 ## 📞 Suporte
 
 Para suporte, entre em contato:
-- 📧 Email: seu.email@exemplo.com
+- 📧 Email: gustavo37872@gmail.com
 - 📱 WhatsApp: (49) 91358163
-- 🐛 Issues: [GitHub Issues](https://github.com/seu-usuario/sana-sistema-academico/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/dalmoling/SANA/issues)
 
 ---
-
-<div align="center">
-
-**Desenvolvido com ❤️ para o TCC do IFC**
-
-⭐ Se este projeto foi útil, considere dar uma estrela!
-
-</div>
 
