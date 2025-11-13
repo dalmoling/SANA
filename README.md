@@ -80,7 +80,7 @@ Facilitar o acompanhamento pedagógico através de:
 
 1. **Clone o repositório**
 ```bash
-git clone https://github.com/seu-usuario/sana-sistema-academico.git
+git clone https://github.com/dalmoling/SANA
 cd sana-sistema-academico
 ```
 
