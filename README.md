@@ -242,8 +242,6 @@ O sistema detecta automaticamente em qual trimestre a turma se encontra:
 ### Comparação de Turmas
 - Agrupa turmas por curso automaticamente
 - Exibe badges coloridos indicando o trimestre atual
-- Calcula estatísticas comparativas
-- Ranking de turmas por desempenho
 
 
 ## 🤝 Contribuição
