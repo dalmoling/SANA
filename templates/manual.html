@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Guia de Ajuda - SANA{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4">
+                <i class="fas fa-book-open text-white text-3xl"></i>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-3">📚 Guia de Ajuda</h1>
+            <p class="text-xl text-gray-600 dark:text-dark-300">Manual do Usuário - SANA</p>
+        </div>
+
+        <!-- Card Principal -->
+        <div class="bg-white dark:bg-dark-800 rounded-lg shadow-lg p-8 mb-8">
+            <!-- Ícone de Construção -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-32 h-32 bg-yellow-100 dark:bg-yellow-900/30 rounded-full mb-6">
+                    <i class="fas fa-hard-hat text-yellow-600 dark:text-yellow-400 text-6xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                    🚧 Em Construção
+                </h2>
+                <p class="text-lg text-gray-600 dark:text-dark-300 mb-2">
+                    O Manual do Usuário está sendo desenvolvido
+                </p>
+                <p class="text-gray-500 dark:text-dark-400">
+                    Em breve você terá acesso a um guia completo do sistema SANA
+                </p>
+            </div>
+
+            <!-- Divisor -->
+            <div class="border-t border-gray-200 dark:border-dark-700 my-8"></div>
+
+            <!-- Informações Temporárias -->
+            <div class="space-y-6">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    📋 O que estará disponível em breve:
+                </h3>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <!-- Item 1 -->
+                    <div class="flex items-start space-x-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <i class="fas fa-check-circle text-blue-600 dark:text-blue-400 text-xl mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white">Guia de Início Rápido</h4>
+                            <p class="text-sm text-gray-600 dark:text-dark-300">Como começar a usar o SANA</p>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="flex items-start space-x-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <i class="fas fa-check-circle text-green-600 dark:text-green-400 text-xl mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white">Funcionalidades</h4>
+                            <p class="text-sm text-gray-600 dark:text-dark-300">Explicação detalhada de cada recurso</p>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="flex items-start space-x-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                        <i class="fas fa-check-circle text-purple-600 dark:text-purple-400 text-xl mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white">Tutoriais em Vídeo</h4>
+                            <p class="text-sm text-gray-600 dark:text-dark-300">Passo a passo visual</p>
+                        </div>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="flex items-start space-x-3 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                        <i class="fas fa-check-circle text-orange-600 dark:text-orange-400 text-xl mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white">FAQ</h4>
+                            <p class="text-sm text-gray-600 dark:text-dark-300">Perguntas frequentes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divisor -->
+            <div class="border-t border-gray-200 dark:border-dark-700 my-8"></div>
+
+            <!-- Contato/Suporte -->
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                    <i class="fas fa-headset mr-2 text-blue-600 dark:text-blue-400"></i>
+                    Precisa de ajuda agora?
+                </h3>
+                <p class="text-gray-600 dark:text-dark-300 mb-4">
+                    Enquanto o manual está em desenvolvimento, você pode:
+                </p>
+                <ul class="space-y-2 text-gray-700 dark:text-dark-200">
+                    <li class="flex items-center">
+                        <i class="fas fa-robot text-purple-600 dark:text-purple-400 mr-3"></i>
+                        Usar o <a href="/chatbot" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Chatbot</a> para tirar dúvidas
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-chart-line text-green-600 dark:text-green-400 mr-3"></i>
+                        Explorar o <a href="/dashboard" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Dashboard</a> com dados interativos
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-envelope text-red-600 dark:text-red-400 mr-3"></i>
+                        Entrar em contato com o suporte técnico 4991358163
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Botão Voltar -->
+        <div class="text-center">
+            <a href="/dashboard" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Animação de Fade In -->
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .container {
+        animation: fadeIn 0.5s ease-out;
+    }
+</style>
+{% endblock %}
+

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Análise Acadêmica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .dark-gradient-bg {
+            background: linear-gradient(135deg, #4c1d95 0%, #581c87 100%);
+        }
+        
+        .login-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .dark .login-card {
+            background: rgba(30, 41, 59, 0.95);
+        }
+        
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg dark:dark-gradient-bg transition-all duration-300">
+    <!-- Toggle de Tema -->
+    <div class="absolute top-4 right-4 z-50">
+        <button id="theme-toggle" onclick="toggleTheme()" 
+                class="p-3 rounded-full bg-white/20 dark:bg-black/20 backdrop-blur-sm border border-white/30 dark:border-white/10 hover:bg-white/30 dark:hover:bg-black/30 transition-all duration-300">
+            <i class="fas fa-sun text-white text-lg"></i>
+        </button>
+    </div>
+
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <!-- Logo/Título -->
+            <div class="text-center mb-8">
+                <div class="floating-animation">
+                    <i class="fas fa-graduation-cap text-6xl text-white mb-4"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-white mb-2">SANA</h1>
+                <p class="text-white/90 text-lg font-medium">Sistema de Análise de Notas Acadêmicas</p>
+            </div>
+
+            <!-- Card de Login -->
+            <div class="login-card rounded-2xl shadow-2xl p-8 border border-white/20 dark:border-white/10">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Bem-vindo!</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Faça login para acessar o sistema</p>
+                </div>
+
+                <!-- Formulário de Login -->
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-user mr-2"></i>Usuário
+                        </label>
+                        <input type="text" id="username" name="username" required
+                               class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                               placeholder="Digite seu usuário">
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-lock mr-2"></i>Senha
+                        </label>
+                        <div class="relative">
+                            <input type="password" id="password" name="password" required
+                                   class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                                   placeholder="Digite sua senha">
+                            <button type="button" onclick="togglePassword()" 
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                                <i id="password-icon" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mensagem de Erro -->
+                    <div id="error-message" class="hidden bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <span id="error-text"></span>
+                    </div>
+
+                    <!-- Botão de Login -->
+                    <button type="submit" id="login-btn"
+                            class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-dark-800">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        <span id="login-text">Entrar</span>
+                    </button>
+                </form>
+
+
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-8">
+                <p class="text-white/60 text-sm">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    Sistema protegido por autenticação JWT
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tema
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const toggle = document.getElementById('theme-toggle');
+            const icon = toggle.querySelector('i');
+            
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                icon.className = 'fas fa-sun text-white text-lg';
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                icon.className = 'fas fa-moon text-white text-lg';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Inicializar tema
+        if (localStorage.getItem('theme') === 'dark' || 
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.getElementById('theme-toggle').querySelector('i').className = 'fas fa-moon text-white text-lg';
+        }
+
+        // Toggle senha
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('password-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.className = 'fas fa-eye';
+            }
+        }
+
+        // Mostrar erro
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        // Esconder erro
+        function hideError() {
+            document.getElementById('error-message').classList.add('hidden');
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            hideError();
+            
+            const loginBtn = document.getElementById('login-btn');
+            const loginText = document.getElementById('login-text');
+            
+            // Loading state
+            loginBtn.disabled = true;
+            loginText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Entrando...';
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Salvar token
+                    localStorage.setItem('access_token', data.access_token);
+                    console.log('Token salvo:', data.access_token);
+                    console.log('Token no localStorage:', localStorage.getItem('access_token'));
+
+                    // Sucesso
+                    loginText.innerHTML = '<i class="fas fa-check mr-2"></i>Sucesso!';
+                    loginBtn.className = loginBtn.className.replace('from-blue-500 to-purple-600', 'from-green-500 to-green-600');
+
+                    // Aguardar um pouco para garantir que o token foi salvo
+                    setTimeout(() => {
+                        console.log('Redirecionando para dashboard...');
+                        console.log('Token antes do redirect:', localStorage.getItem('access_token'));
+                        window.location.href = '/';
+                    }, 500);
+                } else {
+                    showError(data.message || 'Erro ao fazer login');
+                    
+                    // Reset button
+                    loginBtn.disabled = false;
+                    loginText.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Entrar';
+                }
+            } catch (error) {
+                showError('Erro de conexão. Tente novamente.');
+                
+                // Reset button
+                loginBtn.disabled = false;
+                loginText.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Entrar';
+            }
+        });
+
+        // Auto-focus no primeiro campo
+        document.getElementById('username').focus();
+    </script>
+</body>
+</html>

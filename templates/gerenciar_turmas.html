@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Turmas - Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-0">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">👥 Gerenciar Turmas</h1>
+        <p class="mt-2 text-gray-600 dark:text-dark-300">Adicione, remova e gerencie as turmas da escola</p>
+    </div>
+
+    <!-- Adicionar Nova Turma -->
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl p-6 mb-8 border border-gray-200 dark:border-dark-600">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <i class="fas fa-plus-circle text-green-600 dark:text-green-400 mr-2"></i>
+            Adicionar Nova Turma
+        </h2>
+        
+        <form id="form-adicionar-turma" enctype="multipart/form-data" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="nome-turma" class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                        Nome da Turma:
+                    </label>
+                    <input type="text" id="nome-turma" name="nome_turma" required
+                           class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Ex: Agro 2020, Eletro B 2023, Informatica A 2022.">
+                </div>
+                <div>
+                    <label for="arquivo-turma" class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                        Arquivo Excel (.xlsx):
+                    </label>
+                    <input type="file" id="arquivo-turma" name="arquivo" accept=".xlsx" required
+                           class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:border-transparent">
+                </div>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="submit" 
+                        class="px-6 py-3 bg-green-600 dark:bg-green-600 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-dark-800 transition-colors duration-200 flex items-center space-x-2">
+                    <i class="fas fa-upload"></i>
+                    <span>Adicionar Turma</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de Turmas -->
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl p-6 border border-gray-200 dark:border-dark-600">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+            <i class="fas fa-list text-blue-600 dark:text-blue-400 mr-2"></i>
+            Turmas Cadastradas
+        </h2>
+
+        <!-- Comparar Turmas: Filtros e Ações -->
+        <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-white mb-2">Curso</label>
+                <select id="filtro-curso" class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg">
+                    <option value="">Todos os cursos</option>
+                    <option value="eletroeletronica">Eletroeletrônica</option>
+                    <option value="informatica">Informática</option>
+                    <option value="agropecuaria">Agropecuária</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-white mb-2">Ano/Série</label>
+                <select id="filtro-ano" class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg">
+                    <option value="">Todos os anos</option>
+                </select>
+            </div>
+            <div class="md:col-span-2 flex flex-col md:flex-row md:items-end md:justify-end gap-3">
+                <div id="badge-selecao" class="text-sm text-gray-700 dark:text-gray-200 hidden md:mr-3"></div>
+                <button id="btn-comparar" class="px-5 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-700 transition-colors" disabled>
+                    <i class="fas fa-exchange-alt mr-2"></i>Comparar Selecionadas
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loading-turmas" class="text-center py-8">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-gray-600 dark:text-white">Carregando turmas...</p>
+        </div>
+        
+        <!-- Lista de Turmas -->
+        <div id="lista-turmas" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="grid-turmas">
+                <!-- Turmas serão inseridas aqui dinamicamente -->
+            </div>
+        </div>
+        
+        <!-- Estado Vazio -->
+        <div id="empty-turmas" class="hidden text-center py-8">
+            <i class="fas fa-folder-open text-gray-400 text-4xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Nenhuma turma cadastrada</h3>
+            <p class="text-gray-600 dark:text-gray-300">Adicione a primeira turma usando o formulário acima.</p>
+        </div>
+    </div>
+
+    <!-- Instruções -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-6 mt-8">
+        <div class="flex items-start space-x-3">
+            <i class="fas fa-info-circle text-blue-600 dark:text-blue-400 mt-1"></i>
+            <div>
+                <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Instruções</h3>
+                <ul class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                    <li>• <strong>Estrutura do Excel:</strong> Nome, Disciplina, Nota 1º trimestre, Nota 2º trimestre, Nota 3º trimestre</li>
+                    <li>• <strong>Dados vazios:</strong> Deixe células vazias para trimestres sem notas ainda (ex: 1º trimestre em andamento)</li>
+                    <li>• <strong>Nomes das turmas:</strong> Use nomes descritivos (ex: "ELETRO A 2022", "INFO B 2023")</li>
+                    <li>• <strong>Atualizar planilha:</strong> Clique no ícone <i class="fas fa-sync-alt"></i> para substituir a planilha completa</li>
+                    <li>• <strong>Remover turma:</strong> Clique no ícone <i class="fas fa-trash"></i> para excluir permanentemente</li>
+                    <li>• <strong>Comparações:</strong> Selecione 2+ turmas do mesmo curso para comparar desempenho</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        carregarTurmas();
+        
+        // Form de adicionar turma
+        document.getElementById('form-adicionar-turma').addEventListener('submit', function(e) {
+            e.preventDefault();
+            adicionarTurma();
+        });
+    });
+
+    function setAuthHeaders() {
+        return {};
+    }
+
+    function handleAuthError(response) {
+        if (response.status === 401 || response.status === 403) {
+            alert('Acesso negado. Redirecionando para login...');
+            window.location.href = '/login';
+            return true;
+        }
+        return false;
+    }
+
+    function carregarTurmas() {
+        fetch('/api/turmas', {
+            headers: setAuthHeaders()
+        })
+            .then(response => {
+                if (handleAuthError(response)) return;
+                return response.json();
+            })
+            .then(turmas => {
+                inicializarFiltros(turmas);
+                renderizarTurmas(turmas);
+            })
+            .catch(error => {
+                console.error('Erro ao carregar turmas:', error);
+                document.getElementById('loading-turmas').innerHTML = 
+                    '<p class="text-red-500 dark:text-red-400 text-center">Erro ao carregar turmas</p>';
+            });
+    }
+
+    function normalizarCurso(nomeTurma) {
+        const nome = (nomeTurma || '').toLowerCase();
+        if (nome.includes('eletro')) return 'eletroeletronica';
+        if (nome.includes('info')) return 'informatica';
+        if (nome.includes('agro')) return 'agropecuaria';
+        return '';
+    }
+
+    function extrairAno(nomeTurma) {
+        // tenta encontrar padrões como "1º", "2º", "3º", ou números antes de "ano"
+        const mOrdinal = nomeTurma.match(/(\d+)\s*º/i);
+        if (mOrdinal) return mOrdinal[1];
+        const mAno = nomeTurma.toLowerCase().match(/(\d+)\s*ano/);
+        if (mAno) return mAno[1];
+        const mSerie = nomeTurma.toLowerCase().match(/(\d+)\s*serie|série/);
+        if (mSerie) return mSerie[1];
+        return '';
+    }
+
+    function inicializarFiltros(turmas) {
+        const filtroAno = document.getElementById('filtro-ano');
+        const anos = new Set();
+        (turmas || []).forEach(t => {
+            const nomeTurma = t.nome || String(t);
+            const ano = extrairAno(nomeTurma);
+            if (ano) anos.add(ano);
+        });
+        const valores = Array.from(anos).sort((a,b)=>Number(a)-Number(b));
+        filtroAno.innerHTML = '<option value="">Todos os anos</option>' + valores.map(v => `<option value="${v}">${v}º</option>`).join('');
+
+        document.getElementById('filtro-curso').addEventListener('change', () => renderizarTurmas(turmas));
+        document.getElementById('filtro-ano').addEventListener('change', () => renderizarTurmas(turmas));
+        document.getElementById('btn-comparar').addEventListener('click', iniciarComparacao);
+    }
+
+    function renderizarTurmas(turmas) {
+        const loadingDiv = document.getElementById('loading-turmas');
+        const listaDiv = document.getElementById('lista-turmas');
+        const emptyDiv = document.getElementById('empty-turmas');
+        const gridDiv = document.getElementById('grid-turmas');
+
+        loadingDiv.classList.add('hidden');
+
+        if (!turmas || turmas.length === 0) {
+            emptyDiv.classList.remove('hidden');
+            listaDiv.classList.add('hidden');
+            return;
+        }
+
+        emptyDiv.classList.add('hidden');
+        listaDiv.classList.remove('hidden');
+
+        const filtroCurso = document.getElementById('filtro-curso').value;
+        const filtroAno = document.getElementById('filtro-ano').value;
+
+        let html = '';
+        turmas.forEach(turmaObj => {
+            // Agora turma é um objeto {nome, total_alunos, total_disciplinas, curso}
+            const nomeTurma = turmaObj.nome;
+            const totalAlunos = turmaObj.total_alunos;
+            const totalDisciplinas = turmaObj.total_disciplinas;
+            const cursoTurma = turmaObj.curso;
+
+            const curso = normalizarCurso(nomeTurma);
+            const ano = extrairAno(nomeTurma);
+            if (filtroCurso && curso !== filtroCurso) return;
+            if (filtroAno && ano !== filtroAno) return;
+
+            const turmaId = encodeURIComponent(nomeTurma);
+            html += `
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-blue-900 dark:text-blue-100">${nomeTurma}</h3>
+                        <div class="flex items-center gap-2">
+                            <label class="inline-flex items-center text-sm text-blue-900 dark:text-blue-100">
+                                <input type="checkbox" class="chk-turma mr-2" data-curso="${curso}" data-ano="${ano}" value="${turmaId}">
+                                Selecionar
+                            </label>
+                            <button onclick="atualizarTurma('${nomeTurma}')"
+                                    class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                                    title="Atualizar planilha">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button onclick="removerTurma('${nomeTurma}')"
+                                    class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors duration-200"
+                                    title="Remover turma">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-sm text-blue-700 dark:text-blue-300">
+                        <div class="flex items-center">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>${totalAlunos} alunos</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-book mr-2"></i>
+                            <span>${totalDisciplinas} disciplinas</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        gridDiv.innerHTML = html;
+
+        // ligar validação de seleção
+        document.querySelectorAll('.chk-turma').forEach(chk => {
+            chk.addEventListener('change', validarSelecao);
+        });
+        validarSelecao();
+    }
+
+    function adicionarTurma() {
+        const form = document.getElementById('form-adicionar-turma');
+        const formData = new FormData(form);
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adicionando...';
+        submitBtn.disabled = true;
+
+        fetch('/api/turmas/adicionar', {
+            method: 'POST',
+            headers: setAuthHeaders(),
+            body: formData
+        })
+            .then(response => {
+                if (handleAuthError(response)) return;
+                return response.json();
+            })
+            .then(data => {
+                if (data.sucesso) {
+                    alert(data.mensagem);
+                    form.reset();
+                    carregarTurmas();
+                } else {
+                    alert(data.erro || 'Erro ao adicionar turma');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao adicionar turma:', error);
+                alert('Erro ao adicionar turma');
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+    }
+
+    function atualizarTurma(nomeTurma) {
+        // Criar input file temporário
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx';
+
+        input.onchange = function(e) {
+            const arquivo = e.target.files[0];
+            if (!arquivo) return;
+
+            if (!confirm(`Tem certeza que deseja atualizar a planilha da turma "${nomeTurma}"?\n\nA planilha atual será substituída completamente.`)) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('arquivo', arquivo);
+
+            fetch(`/api/turmas/atualizar/${encodeURIComponent(nomeTurma)}`, {
+                method: 'PUT',
+                headers: setAuthHeaders(),
+                body: formData
+            })
+                .then(response => {
+                    if (handleAuthError(response)) return;
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.sucesso) {
+                        alert(data.mensagem);
+                        carregarTurmas();
+                    } else {
+                        alert(data.erro || 'Erro ao atualizar turma');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao atualizar turma:', error);
+                    alert('Erro ao atualizar turma');
+                });
+        };
+
+        input.click();
+    }
+
+    function removerTurma(nomeTurma) {
+        if (!confirm(`Tem certeza que deseja remover a turma "${nomeTurma}"?\n\nEsta ação não pode ser desfeita.`)) {
+            return;
+        }
+
+        fetch(`/api/turmas/remover/${encodeURIComponent(nomeTurma)}`, {
+            method: 'DELETE',
+            headers: setAuthHeaders()
+        })
+            .then(response => {
+                if (handleAuthError(response)) return;
+                return response.json();
+            })
+            .then(data => {
+                if (data.sucesso) {
+                    alert(data.mensagem);
+                    carregarTurmas();
+                } else {
+                    alert(data.erro || 'Erro ao remover turma');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao remover turma:', error);
+                alert('Erro ao remover turma');
+            });
+    }
+
+    function validarSelecao() {
+        const checks = Array.from(document.querySelectorAll('.chk-turma'));
+        const selecionadas = checks.filter(c => c.checked);
+        const badge = document.getElementById('badge-selecao');
+        const btn = document.getElementById('btn-comparar');
+
+        if (selecionadas.length < 2) {
+            btn.disabled = true;
+            badge.classList.remove('hidden');
+            badge.textContent = 'Selecione ao menos 2 turmas.';
+            return;
+        }
+
+        const cursoBase = selecionadas[0].dataset.curso;
+        const anoBase = selecionadas[0].dataset.ano;
+        const valido = selecionadas.every(c => c.dataset.curso === cursoBase && c.dataset.ano === anoBase);
+
+        if (!valido) {
+            btn.disabled = true;
+            badge.classList.remove('hidden');
+            badge.textContent = 'Só é possível comparar turmas do mesmo curso e ano.';
+        } else {
+            btn.disabled = false;
+            badge.classList.remove('hidden');
+            const nomes = selecionadas.length;
+            const cursoTxt = cursoBase ? cursoBase.charAt(0).toUpperCase() + cursoBase.slice(1) : 'Curso';
+            const anoTxt = anoBase ? anoBase + 'º' : '';
+            badge.textContent = `${nomes} selecionadas • ${cursoTxt} • ${anoTxt}`;
+        }
+    }
+
+    function iniciarComparacao() {
+        const selecionadas = Array.from(document.querySelectorAll('.chk-turma:checked'));
+        if (selecionadas.length < 2) return;
+        const nomes = selecionadas.map(c => decodeURIComponent(c.value));
+        // Redireciona para endpoint de comparação com query params
+        const params = new URLSearchParams();
+        nomes.forEach(n => params.append('turma', n));
+        window.location.href = `/comparar-turmas?${params.toString()}`;
+    }
+</script>
+{% endblock %}

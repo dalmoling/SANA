@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Consulta - SANA{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-0">
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">🔍 Consulta de Alunos</h1>
+            <p class="mt-2 text-gray-600 dark:text-dark-300">Consulte o desempenho individual dos alunos por disciplina</p>
+        </div>
+        <!-- Indicador de Trimestre -->
+        <div id="indicador-trimestre-consulta" class="hidden">
+            <span id="badge-trimestre-consulta" class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold">
+                <i class="fas fa-calendar-alt mr-1.5"></i>
+                <span id="texto-trimestre-consulta">Carregando...</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Formulário de Consulta -->
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl p-6 mb-8 border border-gray-200 dark:border-dark-600">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+                <label for="select-aluno" class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                    Selecione um aluno:
+                </label>
+                <select id="select-aluno" class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:border-transparent">
+                    <option value="">Carregando alunos...</option>
+                </select>
+            </div>
+            <div class="flex items-end gap-4">
+                <button
+                    id="btn-consultar"
+                    onclick="consultarAluno()"
+                    class="px-6 py-3 bg-indigo-600 dark:bg-purple-600 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-purple-700 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-dark-800 transition-colors duration-200 flex items-center space-x-2"
+                >
+                    <i class="fas fa-search"></i>
+                    <span>Consultar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultado da Consulta -->
+    <div id="resultado-consulta" style="display: none;">
+        <!-- Será preenchido dinamicamente -->
+    </div>
+
+    <!-- Instruções -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-6">
+        <div class="flex items-start space-x-3">
+            <i class="fas fa-info-circle text-blue-600 dark:text-blue-400 mt-1"></i>
+            <div>
+                <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Como usar a consulta</h3>
+                <ul class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                    <li>• Selecione um aluno da lista suspensa</li>
+                    <li>• Clique em "Consultar" para ver o desempenho detalhado</li>
+                    <li>• Visualize as notas por trimestre e a situação em cada disciplina</li>
+                    <li>• As cores indicam: <span class="text-green-600 dark:text-green-400 font-semibold">Verde (Aprovado)</span>, <span class="text-yellow-600 dark:text-yellow-400 font-semibold">Amarelo (Recuperação)</span>, <span class="text-red-600 dark:text-red-400 font-semibold">Vermelho (Reprovado)</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Carregar lista de alunos ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+        carregarListaAlunos();
+        carregarInfoTrimestreConsulta();
+    });
+
+    function carregarListaAlunos() {
+        fetch('/api/lista-alunos')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('select-aluno');
+                select.innerHTML = '<option value="">Selecione um aluno...</option>';
+                
+                data.forEach(aluno => {
+                    const option = document.createElement('option');
+                    option.value = aluno;
+                    option.textContent = aluno;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Erro ao carregar alunos:', error);
+                document.getElementById('select-aluno').innerHTML = '<option value="">Erro ao carregar alunos</option>';
+            });
+    }
+
+    function consultarAluno() {
+        const nomeAluno = document.getElementById('select-aluno').value;
+        const resultadoDiv = document.getElementById('resultado-consulta');
+        
+        if (!nomeAluno) {
+            alert('Por favor, selecione um aluno.');
+            return;
+        }
+
+        // Mostrar loading
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.innerHTML = `
+            <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl p-8 text-center border border-gray-200 dark:border-dark-600">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-gray-600 dark:text-white">Carregando dados do aluno...</p>
+            </div>
+        `;
+
+        fetch(`/api/consulta-aluno?nome=${encodeURIComponent(nomeAluno)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.erro) {
+                    resultadoDiv.innerHTML = `
+                        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400"></i>
+                                <p class="text-red-800 dark:text-red-200">${data.erro}</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Determinar cor da média geral
+                let corMedia = 'text-red-600';
+                if (data.media_geral >= 6.0) corMedia = 'text-green-600';
+                else if (data.media_geral >= 4.0) corMedia = 'text-yellow-600';
+
+                let html = `
+                    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl overflow-hidden border border-gray-200 dark:border-dark-600">
+                        <!-- Header do Aluno -->
+                        <div class="gradient-bg dark:dark-gradient-bg px-6 py-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-xl font-bold text-white flex items-center">
+                                        <i class="fas fa-user-graduate mr-2"></i>
+                                        ${data.nome}
+                                    </h2>
+                                    <p class="text-white opacity-90">Relatório de Desempenho Acadêmico</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-white opacity-90 text-sm">Média Geral</p>
+                                    <p class="text-2xl font-bold text-white">${data.media_geral}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Relatório da IA (posicionado no topo) -->
+                `;
+
+                // Adicionar seção do relatório IA se disponível (logo após o header)
+                if (data.relatorio_ia) {
+                    html += `
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 border-b border-blue-200 dark:border-blue-700">
+                            <div class="flex items-center mb-4">
+                                <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                                    <i class="fas fa-robot text-blue-600 dark:text-blue-400 text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100">Relatório Pedagógico IA</h3>
+                                    <p class="text-sm text-blue-700 dark:text-blue-300">Análise automatizada do desempenho do aluno</p>
+                                </div>
+                            </div>
+                            <div class="bg-white dark:bg-dark-800 rounded-lg p-4 border border-blue-200 dark:border-blue-600">
+                                <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 leading-relaxed">
+                                    ${data.relatorio_ia.replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-center text-xs text-blue-600 dark:text-blue-400">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                <span>Relatório gerado automaticamente pela IA Gemini com base nos dados acadêmicos</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        <!-- Estatísticas Resumo -->
+                        <div class="p-6 border-b border-gray-200 dark:border-dark-600 bg-gray-50 dark:bg-dark-900">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="text-center p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-600">
+                                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">${data.aprovado_em}</div>
+                                    <div class="text-sm text-gray-600 dark:text-dark-300">Aprovado</div>
+                                </div>
+                                <div class="text-center p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-600">
+                                    <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">${data.recuperacao_em}</div>
+                                    <div class="text-sm text-gray-600 dark:text-dark-300">Recuperação</div>
+                                </div>
+                                <div class="text-center p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-600">
+                                    <div class="text-2xl font-bold text-red-600 dark:text-red-400">${data.reprovado_em}</div>
+                                    <div class="text-sm text-gray-600 dark:text-dark-300">Reprovado</div>
+                                </div>
+                                <div class="text-center p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-600">
+                                    <div class="text-2xl font-bold ${corMedia}">${data.media_geral}</div>
+                                    <div class="text-sm text-gray-600 dark:text-dark-300">Média Geral</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detalhes por Disciplina -->
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Desempenho por Disciplina</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-dark-600">
+                                    <thead class="bg-gray-50 dark:bg-dark-700">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">Disciplina</th>
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">1º Trimestre</th>
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">2º Trimestre</th>
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">3º Trimestre</th>
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">Média</th>
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">Situação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white dark:bg-dark-800 divide-y divide-gray-200 dark:divide-dark-600">
+                `;
+
+                data.disciplinas.forEach((disc, index) => {
+                    const bgColor = index % 2 === 0 ? 'bg-white dark:bg-dark-800' : 'bg-gray-50 dark:bg-dark-700';
+
+                    let corSituacao = 'text-red-600 dark:text-red-300 bg-red-100 dark:bg-red-900/30';
+                    if (disc.situacao === 'Aprovado') corSituacao = 'text-green-600 dark:text-green-300 bg-green-100 dark:bg-green-900/30';
+                    else if (disc.situacao === 'Recuperação') corSituacao = 'text-yellow-600 dark:text-yellow-300 bg-yellow-100 dark:bg-yellow-900/30';
+
+                    let corMedia = 'text-red-600 dark:text-red-400';
+                    if (disc.media >= 6.0) corMedia = 'text-green-600 dark:text-green-400';
+                    else if (disc.media >= 4.0) corMedia = 'text-yellow-600 dark:text-yellow-400';
+
+                    html += `
+                        <tr class="${bgColor}">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${disc.disciplina}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-dark-300 text-center">${disc.nota_1t !== null ? disc.nota_1t : '-'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-dark-300 text-center">${disc.nota_2t !== null ? disc.nota_2t : '-'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-dark-300 text-center">${disc.nota_3t !== null ? disc.nota_3t : '-'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${corMedia} text-center">${disc.media}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${corSituacao}">
+                                    ${disc.situacao}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                resultadoDiv.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Erro ao consultar aluno:', error);
+                resultadoDiv.innerHTML = `
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400"></i>
+                            <p class="text-red-800 dark:text-red-200">Erro ao carregar dados do aluno. Tente novamente.</p>
+                        </div>
+                    </div>
+                `;
+            });
+    }
+
+    function carregarInfoTrimestreConsulta() {
+        fetch('/api/info-trimestre', { headers: setAuthHeaders() })
+            .then(response => response.json())
+            .then(data => {
+                if (data.erro) return;
+
+                document.getElementById('indicador-trimestre-consulta').classList.remove('hidden');
+                const badge = document.getElementById('badge-trimestre-consulta');
+                const texto = document.getElementById('texto-trimestre-consulta');
+                texto.textContent = data.status;
+
+                badge.className = 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold';
+
+                if (data.trimestre_atual === 1) {
+                    badge.classList.add('bg-blue-100', 'text-blue-800', 'dark:bg-blue-900/30', 'dark:text-blue-300');
+                } else if (data.trimestre_atual === 2) {
+                    badge.classList.add('bg-purple-100', 'text-purple-800', 'dark:bg-purple-900/30', 'dark:text-purple-300');
+                } else if (data.trimestre_atual === 3 && data.status === "Ano Letivo Completo") {
+                    badge.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-900/30', 'dark:text-green-300');
+                } else {
+                    badge.classList.add('bg-indigo-100', 'text-indigo-800', 'dark:bg-indigo-900/30', 'dark:text-indigo-300');
+                }
+            })
+            .catch(error => console.error('Erro ao carregar info trimestre:', error));
+    }
+</script>
+{% endblock %}

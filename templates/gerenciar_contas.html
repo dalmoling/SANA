@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Contas - Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-0">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">👤 Gerenciar Contas</h1>
+        <p class="mt-2 text-gray-600 dark:text-dark-300">Gerencie contas de coordenadores do sistema</p>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-dark-600">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-dark-300">Total de Contas</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-contas">-</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-dark-600">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                    <i class="fas fa-user-shield text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-dark-300">Administradores</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-admins">-</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-dark-600">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                    <i class="fas fa-user-check text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-dark-300">Coordenadores</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-coordenadores">-</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adicionar Nova Conta -->
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl p-6 mb-8 border border-gray-200 dark:border-dark-600">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <i class="fas fa-user-plus text-green-600 dark:text-green-400 mr-2"></i>
+            Adicionar Nova Conta
+        </h2>
+        
+        <form id="form-adicionar-conta" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                        Usuário (Login):
+                    </label>
+                    <input type="text" id="username" name="username" required
+                           class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Ex: joao.silva">
+                </div>
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                        Nome Completo:
+                    </label>
+                    <input type="text" id="name" name="name" required
+                           class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Ex: João Silva">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                        E-mail:
+                    </label>
+                    <input type="email" id="email" name="email" required
+                           class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Ex: joao.silva@ifc.edu.br">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                        Senha:
+                    </label>
+                    <input type="password" id="password" name="password" required
+                           class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Mínimo 6 caracteres">
+                </div>
+            </div>
+            
+            <div class="flex items-center">
+                <input type="checkbox" id="is_admin" name="is_admin" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                <label for="is_admin" class="ml-2 text-sm text-gray-700 dark:text-white">
+                    <i class="fas fa-shield-alt text-purple-600 dark:text-purple-400 mr-1"></i>
+                    Conceder privilégios de administrador
+                </label>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="submit" 
+                        class="px-6 py-3 bg-green-600 dark:bg-green-600 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-dark-800 transition-colors duration-200 flex items-center space-x-2">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Criar Conta</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de Contas -->
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl p-6 border border-gray-200 dark:border-dark-600">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+            <i class="fas fa-list text-blue-600 dark:text-blue-400 mr-2"></i>
+            Contas Cadastradas
+        </h2>
+
+        <!-- Loading State -->
+        <div id="loading-contas" class="text-center py-8">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-gray-600 dark:text-white">Carregando contas...</p>
+        </div>
+        
+        <!-- Tabela de Contas -->
+        <div id="tabela-contas" class="hidden overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-dark-600">
+                <thead class="bg-gray-50 dark:bg-dark-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Usuário</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nome</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">E-mail</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Criado em</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-contas" class="bg-white dark:bg-dark-800 divide-y divide-gray-200 dark:divide-dark-600">
+                    <!-- Contas serão inseridas aqui -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Estado Vazio -->
+        <div id="empty-contas" class="hidden text-center py-8">
+            <i class="fas fa-user-slash text-gray-400 text-4xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Nenhuma conta cadastrada</h3>
+            <p class="text-gray-600 dark:text-gray-300">Adicione a primeira conta usando o formulário acima.</p>
+        </div>
+    </div>
+
+    <!-- Instruções -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-6 mt-8">
+        <div class="flex items-start space-x-3">
+            <i class="fas fa-info-circle text-blue-600 dark:text-blue-400 mt-1"></i>
+            <div>
+                <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Instruções</h3>
+                <ul class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                    <li>• <strong>Administradores</strong> podem criar, editar e remover outras contas</li>
+                    <li>• <strong>Coordenadores</strong> têm acesso completo ao sistema, mas não podem gerenciar contas</li>
+                    <li>• Sempre mantenha pelo menos 1 conta com privilégios de administrador</li>
+                    <li>• Use senhas fortes com no mínimo 6 caracteres</li>
+                    <li>• O usuário de login não pode ser alterado após criação</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Edição -->
+<div id="modal-editar" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-2xl max-w-md w-full p-6">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Editar Conta</h3>
+        <form id="form-editar-conta" class="space-y-4">
+            <input type="hidden" id="edit-username">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-white mb-2">Nome Completo:</label>
+                <input type="text" id="edit-name" required
+                       class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-white mb-2">E-mail:</label>
+                <input type="email" id="edit-email" required
+                       class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-white mb-2">Nova Senha (deixe vazio para manter):</label>
+                <input type="password" id="edit-password"
+                       class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg">
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" id="edit-is-admin" class="w-4 h-4 text-indigo-600 border-gray-300 rounded">
+                <label for="edit-is-admin" class="ml-2 text-sm text-gray-700 dark:text-white">Administrador</label>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="fecharModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500">
+                    Cancelar
+                </button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Salvar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        carregarContas();
+        
+        // Form de adicionar conta
+        document.getElementById('form-adicionar-conta').addEventListener('submit', function(e) {
+            e.preventDefault();
+            adicionarConta();
+        });
+        
+        // Form de editar conta
+        document.getElementById('form-editar-conta').addEventListener('submit', function(e) {
+            e.preventDefault();
+            salvarEdicao();
+        });
+    });
+
+    function setAuthHeaders() {
+        return {};
+    }
+
+    function handleAuthError(response) {
+        if (response.status === 401 || response.status === 403) {
+            alert('Acesso negado. Redirecionando para login...');
+            window.location.href = '/login';
+            return true;
+        }
+        return false;
+    }
+
+    function carregarContas() {
+        fetch('/api/contas', {
+            headers: setAuthHeaders()
+        })
+            .then(response => {
+                if (handleAuthError(response)) return;
+                return response.json();
+            })
+            .then(data => {
+                if (data) {
+                    renderizarContas(data.contas);
+                    atualizarEstatisticas(data);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar contas:', error);
+                document.getElementById('loading-contas').innerHTML = 
+                    '<p class="text-red-500 dark:text-red-400 text-center">Erro ao carregar contas</p>';
+            });
+    }
+
+    function atualizarEstatisticas(data) {
+        document.getElementById('total-contas').textContent = data.total || 0;
+        document.getElementById('total-admins').textContent = data.total_admins || 0;
+        document.getElementById('total-coordenadores').textContent = (data.total || 0) - (data.total_admins || 0);
+    }
+
+    function renderizarContas(contas) {
+        const loadingDiv = document.getElementById('loading-contas');
+        const tabelaDiv = document.getElementById('tabela-contas');
+        const emptyDiv = document.getElementById('empty-contas');
+        const tbody = document.getElementById('tbody-contas');
+
+        loadingDiv.classList.add('hidden');
+
+        if (!contas || contas.length === 0) {
+            emptyDiv.classList.remove('hidden');
+            tabelaDiv.classList.add('hidden');
+            return;
+        }
+
+        emptyDiv.classList.add('hidden');
+        tabelaDiv.classList.remove('hidden');
+
+        let html = '';
+        contas.forEach(conta => {
+            const dataCriacao = conta.created_at ? new Date(conta.created_at).toLocaleDateString('pt-BR') : '-';
+            const tipoBadge = conta.is_admin 
+                ? '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200"><i class="fas fa-shield-alt mr-1"></i>Admin</span>'
+                : '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200"><i class="fas fa-user mr-1"></i>Coordenador</span>';
+            
+            html += `
+                <tr class="hover:bg-gray-50 dark:hover:bg-dark-700">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-indigo-600 dark:text-indigo-400"></i>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">${conta.username}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 dark:text-white">${conta.name}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-500 dark:text-gray-300">${conta.email}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${tipoBadge}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                        ${dataCriacao}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="editarConta('${conta.username}')" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 mr-3" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="removerConta('${conta.username}')" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300" title="Remover">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    function adicionarConta() {
+        const formData = {
+            username: document.getElementById('username').value,
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            is_admin: document.getElementById('is_admin').checked
+        };
+
+        fetch('/api/contas/criar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...setAuthHeaders()
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => {
+                if (handleAuthError(response)) return;
+                return response.json();
+            })
+            .then(data => {
+                if (data.sucesso) {
+                    alert(data.mensagem);
+                    document.getElementById('form-adicionar-conta').reset();
+                    carregarContas();
+                } else {
+                    alert(data.erro || 'Erro ao criar conta');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao criar conta:', error);
+                alert('Erro ao criar conta');
+            });
+    }
+
+    function editarConta(username) {
+        fetch(`/api/contas/${username}`, {
+            headers: setAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(conta => {
+                document.getElementById('edit-username').value = username;
+                document.getElementById('edit-name').value = conta.name;
+                document.getElementById('edit-email').value = conta.email;
+                document.getElementById('edit-password').value = '';
+                document.getElementById('edit-is-admin').checked = conta.is_admin;
+                document.getElementById('modal-editar').classList.remove('hidden');
+            });
+    }
+
+    function salvarEdicao() {
+        const username = document.getElementById('edit-username').value;
+        const formData = {
+            name: document.getElementById('edit-name').value,
+            email: document.getElementById('edit-email').value,
+            is_admin: document.getElementById('edit-is-admin').checked
+        };
+
+        const password = document.getElementById('edit-password').value;
+        if (password) {
+            formData.password = password;
+        }
+
+        fetch(`/api/contas/${username}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...setAuthHeaders()
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.sucesso) {
+                    alert(data.mensagem);
+                    fecharModal();
+                    carregarContas();
+                } else {
+                    alert(data.erro || 'Erro ao atualizar conta');
+                }
+            });
+    }
+
+    function removerConta(username) {
+        if (!confirm(`Tem certeza que deseja remover a conta "${username}"?\n\nEsta ação não pode ser desfeita.`)) {
+            return;
+        }
+
+        fetch(`/api/contas/${username}`, {
+            method: 'DELETE',
+            headers: setAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.sucesso) {
+                    alert(data.mensagem);
+                    carregarContas();
+                } else {
+                    alert(data.erro || 'Erro ao remover conta');
+                }
+            });
+    }
+
+    function fecharModal() {
+        document.getElementById('modal-editar').classList.add('hidden');
+    }
+</script>
+{% endblock %}
+

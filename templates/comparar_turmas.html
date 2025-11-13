@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %} Turmas - Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-0">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">📊 Turmas</h1>
+        <p class="mt-2 text-gray-600 dark:text-dark-300">Turmas Cadastradas no Sistemas e suas informações</p>
+    </div>
+
+    <!-- Comparação entre Turmas -->
+    <!-- Loading State -->
+    <div id="loading-comparacao" class="text-center py-8">
+        <div class="loading-spinner mb-4"></div>
+        <p class="text-gray-600 dark:text-white">Carregando comparação...</p>
+    </div>
+
+    <!-- Comparação por Curso -->
+    <div id="comparacao-turmas" class="hidden space-y-8">
+        <!-- Cursos serão inseridos aqui -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        carregarComparacaoTurmas();
+    });
+
+    function setAuthHeaders() {
+        return {};
+    }
+
+    function handleAuthError(response) {
+        if (response.status === 401 || response.status === 403) {
+            alert('Acesso negado. Redirecionando para login...');
+            window.location.href = '/login';
+            return true;
+        }
+        return false;
+    }
+
+    function querySelecionadas() {
+        const params = new URLSearchParams(window.location.search);
+        const query = params.toString();
+        return query ? ('?' + query) : '';
+    }
+
+    function extrairCurso(nomeTurma) {
+        // Extrai o curso do nome da turma (ex: "agropecuaria_2022" -> "Agropecuária")
+        const partes = nomeTurma.split('_');
+        if (partes.length > 0) {
+            const curso = partes[0];
+            // Capitalizar primeira letra
+            return curso.charAt(0).toUpperCase() + curso.slice(1);
+        }
+        return 'Outros';
+    }
+
+    function carregarComparacaoTurmas() {
+        fetch('/api/turmas/comparar' + querySelecionadas(), {
+            headers: setAuthHeaders()
+        })
+            .then(response => {
+                if (handleAuthError(response)) return;
+                return response.json();
+            })
+            .then(data => {
+                renderizarComparacaoTurmas(data);
+            })
+            .catch(error => {
+                console.error('Erro ao carregar comparação:', error);
+                document.getElementById('loading-comparacao').innerHTML =
+                    '<p class="text-red-500 dark:text-red-400 text-center">Erro ao carregar comparação</p>';
+            });
+    }
+
+    function renderizarComparacaoTurmas(data) {
+        const loadingDiv = document.getElementById('loading-comparacao');
+        const comparacaoDiv = document.getElementById('comparacao-turmas');
+
+        loadingDiv.classList.add('hidden');
+        comparacaoDiv.classList.remove('hidden');
+
+        const fmt = (v) => (typeof v === 'number' ? v.toFixed(2) : v);
+
+        // Agrupar turmas por curso
+        const turmasPorCurso = {};
+        data.turmas.forEach(turma => {
+            const curso = extrairCurso(turma.nome);
+            if (!turmasPorCurso[curso]) {
+                turmasPorCurso[curso] = [];
+            }
+            turmasPorCurso[curso].push(turma);
+        });
+
+        // Renderizar cada curso
+        let html = '';
+        Object.keys(turmasPorCurso).sort().forEach(curso => {
+            const turmasDoCurso = turmasPorCurso[curso];
+
+            html += `
+                <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl p-6 border border-gray-200 dark:border-dark-600">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                        <i class="fas fa-graduation-cap text-blue-600 dark:text-blue-400 mr-2"></i>
+                        ${curso}
+                    </h2>
+
+                    <div class="space-y-4">
+            `;
+
+            turmasDoCurso.forEach((turma, index) => {
+                let medalha = '';
+                let corCard = 'border-gray-200 dark:border-dark-600';
+
+                if (index === 0 && turmasDoCurso.length > 1) {
+                    medalha = '<i class="fas fa-trophy text-yellow-500 mr-2"></i>';
+                    corCard = 'border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20';
+                } else if (index === 1 && turmasDoCurso.length > 1) {
+                    medalha = '<i class="fas fa-medal text-gray-400 mr-2"></i>';
+                    corCard = 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800';
+                }
+
+                // Badge do trimestre
+                let trimestreBadge = '';
+                if (turma.trimestre_atual) {
+                    const statusTrimestre = turma.status_trimestre || `${turma.trimestre_atual}º Trimestre`;
+                    let corTrimestre = 'blue';
+                    if (statusTrimestre.includes('Completo')) {
+                        corTrimestre = 'green';
+                    } else if (statusTrimestre.includes('3º')) {
+                        corTrimestre = 'orange';
+                    } else if (statusTrimestre.includes('2º')) {
+                        corTrimestre = 'yellow';
+                    }
+
+                    trimestreBadge = `
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${corTrimestre}-100 dark:bg-${corTrimestre}-900/30 text-${corTrimestre}-800 dark:text-${corTrimestre}-300">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            ${statusTrimestre}
+                        </span>
+                    `;
+                }
+
+                html += `
+                    <div class="p-4 rounded-lg border ${corCard} transition-all duration-200 hover:shadow-md">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-semibold text-gray-900 dark:text-white flex items-center">
+                                ${medalha}${turma.nome}
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                ${trimestreBadge}
+                                ${turmasDoCurso.length > 1 ? `<span class="text-sm text-gray-500 dark:text-gray-400">${index + 1}º lugar</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                            <div class="text-center">
+                                <div class="font-semibold text-blue-600 dark:text-blue-400">${turma.total_alunos}</div>
+                                <div class="text-gray-600 dark:text-gray-300">Alunos</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-semibold text-purple-600 dark:text-purple-400">${fmt(turma.media_geral)}</div>
+                                <div class="text-gray-600 dark:text-gray-300">Média</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-semibold text-green-600 dark:text-green-400">${turma.aprovados}</div>
+                                <div class="text-gray-600 dark:text-gray-300">Aprovados</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-semibold text-yellow-600 dark:text-yellow-400">${turma.recuperacao}</div>
+                                <div class="text-gray-600 dark:text-gray-300">Recuperação</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-semibold text-red-600 dark:text-red-400">${turma.reprovados}</div>
+                                <div class="text-gray-600 dark:text-gray-300">Reprovados</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-t border-gray-200 dark:border-dark-600">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-300">Taxa de Aprovação:</span>
+                                <span class="font-semibold text-green-600 dark:text-green-400">${fmt(turma.taxa_aprovacao)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+        });
+
+        comparacaoDiv.innerHTML = html;
+    }
+</script>
+{% endblock %}

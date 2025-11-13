@@ -1,0 +1,9 @@
+google-generativeai
+flask
+pandas
+openpyxl
+python-dotenv
+plotly
+dash
+matplotlib
+seaborn

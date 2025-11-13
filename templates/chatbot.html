@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Chatbot - SANA{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-0">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">🤖 Chatbot Acadêmico</h1>
+        <p class="mt-2 text-gray-600 dark:text-dark-300">Faça perguntas sobre as notas e desempenho dos alunos</p>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl flex flex-col border border-gray-200 dark:border-dark-600" style="height: 75vh;">
+        <!-- Chat Header -->
+        <div class="gradient-bg dark:dark-gradient-bg px-6 py-4 flex-shrink-0">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-white">Assistente Acadêmico</h3>
+                    <p class="text-sm text-white opacity-90">Online • Pronto para ajudar</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-sm text-white">IA Ativa</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 min-h-0 bg-gray-50 dark:bg-dark-900">
+            <!-- Mensagem de boas-vindas -->
+            <div class="flex items-start space-x-3 chat-message">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center">
+                        <i class="fas fa-robot text-indigo-600 dark:text-indigo-400 text-sm"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <div class="bg-white dark:bg-dark-700 rounded-lg px-4 py-3 max-w-md shadow-sm dark:shadow-lg border border-gray-200 dark:border-dark-600">
+                        <p class="text-sm text-gray-800 dark:text-white">
+                            👋 Olá! Sou seu assistente acadêmico. Posso ajudar com análises sobre as notas dos alunos.
+                        </p>
+                        <div class="mt-3 text-xs text-gray-600 dark:text-dark-300">
+                            <p class="font-semibold mb-2">Exemplos de perguntas:</p>
+                            <ul class="space-y-1">
+                                <li>• "Quantos alunos estão com média abaixo de 6 em Matemática?"</li>
+                                <li>• "Qual disciplina tem mais alunos com dificuldade?"</li>
+                                <li>• "Como está o desempenho geral da turma?"</li>
+                                <li>• "Quais alunos precisam de recuperação em Física?"</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-dark-400 mt-1">Agora mesmo</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="border-t border-gray-200 dark:border-dark-600 px-6 py-4 flex-shrink-0 bg-white dark:bg-dark-800">
+            <div class="flex items-center space-x-3">
+                <div class="flex-1">
+                    <input
+                        type="text"
+                        id="chat-input"
+                        placeholder="Digite sua pergunta sobre os dados acadêmicos..."
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:border-transparent resize-none placeholder-gray-500 dark:placeholder-dark-400"
+                        onkeypress="handleKeyPress(event)"
+                    >
+                </div>
+                <button
+                    id="send-button"
+                    onclick="enviarMensagem()"
+                    class="px-6 py-3 bg-indigo-600 dark:bg-purple-600 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-purple-700 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-dark-800 transition-colors duration-200 flex items-center space-x-2 flex-shrink-0"
+                >
+                    <i class="fas fa-paper-plane"></i>
+                    <span class="hidden sm:inline">Enviar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sugestões de Perguntas -->
+    <div class="mt-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">💡 Perguntas Sugeridas</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <button onclick="enviarPerguntaSugerida('Quantos alunos estão com dificuldade em Matemática?')"
+                    class="text-left p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-dark-600 hover:border-blue-300 dark:hover:border-blue-500">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-calculator text-blue-500 dark:text-blue-400"></i>
+                    <span class="text-sm text-gray-700 dark:text-white">Dificuldades em Matemática</span>
+                </div>
+            </button>
+
+            <button onclick="enviarPerguntaSugerida('Qual a média geral da turma?')"
+                    class="text-left p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-dark-600 hover:border-green-300 dark:hover:border-green-500">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-chart-line text-green-500 dark:text-green-400"></i>
+                    <span class="text-sm text-gray-700 dark:text-white">Média geral da turma</span>
+                </div>
+            </button>
+
+            <button onclick="enviarPerguntaSugerida('Quais disciplinas são mais difíceis?')"
+                    class="text-left p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-dark-600 hover:border-red-300 dark:hover:border-red-500">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-exclamation-triangle text-red-500 dark:text-red-400"></i>
+                    <span class="text-sm text-gray-700 dark:text-white">Disciplinas mais difíceis</span>
+                </div>
+            </button>
+
+            <button onclick="enviarPerguntaSugerida('Como foi a evolução das notas ao longo dos trimestres?')"
+                    class="text-left p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-dark-600 hover:border-purple-300 dark:hover:border-purple-500">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-trending-up text-purple-500 dark:text-purple-400"></i>
+                    <span class="text-sm text-gray-700 dark:text-white">Evolução por trimestre</span>
+                </div>
+            </button>
+
+            <button onclick="enviarPerguntaSugerida('Quantos alunos precisam de recuperação?')"
+                    class="text-left p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-dark-600 hover:border-yellow-300 dark:hover:border-yellow-500">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-user-graduate text-yellow-500 dark:text-yellow-400"></i>
+                    <span class="text-sm text-gray-700 dark:text-white">Alunos em recuperação</span>
+                </div>
+            </button>
+
+            <button onclick="enviarPerguntaSugerida('Quais alunos têm melhor desempenho?')"
+                    class="text-left p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-dark-600 hover:border-indigo-300 dark:hover:border-indigo-500">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-star text-indigo-500 dark:text-indigo-400"></i>
+                    <span class="text-sm text-gray-700 dark:text-white">Melhores desempenhos</span>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let isLoading = false;
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            enviarMensagem();
+        }
+    }
+
+    function enviarPerguntaSugerida(pergunta) {
+        document.getElementById('chat-input').value = pergunta;
+        enviarMensagem();
+    }
+
+    function enviarMensagem() {
+        const input = document.getElementById('chat-input');
+        const mensagem = input.value.trim();
+        
+        if (!mensagem || isLoading) return;
+        
+        // Adicionar mensagem do usuário
+        adicionarMensagem(mensagem, 'user');
+        input.value = '';
+        
+        // Mostrar indicador de carregamento
+        mostrarCarregamento();
+        isLoading = true;
+        
+        // Enviar para a API
+        fetch('/pergunta', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ pergunta: mensagem })
+        })
+        .then(response => response.json())
+        .then(data => {
+            removerCarregamento();
+            adicionarMensagem(data.resposta, 'bot');
+            isLoading = false;
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            removerCarregamento();
+            adicionarMensagem('Desculpe, houve um erro. Tente novamente.', 'bot');
+            isLoading = false;
+        });
+    }
+
+    function adicionarMensagem(mensagem, tipo) {
+        const chatMessages = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex items-start space-x-3 chat-message';
+        
+        const agora = new Date().toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        if (tipo === 'user') {
+            messageDiv.innerHTML = `
+                <div class="flex-1"></div>
+                <div class="flex-shrink-0 order-2">
+                    <div class="w-8 h-8 bg-indigo-600 dark:bg-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+                <div class="flex-1 order-1">
+                    <div class="bg-indigo-600 dark:bg-purple-600 text-white rounded-lg px-4 py-3 max-w-md ml-auto shadow-sm">
+                        <p class="text-sm">${mensagem}</p>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-dark-400 mt-1 text-right">${agora}</p>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-gray-100 dark:bg-dark-700 rounded-full flex items-center justify-center shadow-sm">
+                        <i class="fas fa-robot text-gray-600 dark:text-dark-300 text-sm"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <div class="bg-white dark:bg-dark-700 rounded-lg px-4 py-3 max-w-2xl shadow-sm border border-gray-200 dark:border-dark-600">
+                        <p class="text-sm text-gray-800 dark:text-white whitespace-pre-wrap">${mensagem}</p>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-dark-400 mt-1">${agora}</p>
+                </div>
+            `;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function mostrarCarregamento() {
+        const chatMessages = document.getElementById('chat-messages');
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'loading-message';
+        loadingDiv.className = 'flex items-start space-x-3 chat-message';
+        loadingDiv.innerHTML = `
+            <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-gray-100 dark:bg-dark-700 rounded-full flex items-center justify-center shadow-sm">
+                    <i class="fas fa-robot text-gray-600 dark:text-dark-300 text-sm"></i>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="bg-white dark:bg-dark-700 rounded-lg px-4 py-3 max-w-md shadow-sm border border-gray-200 dark:border-dark-600">
+                    <div class="flex items-center space-x-2">
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-indigo-400 dark:bg-purple-400 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-indigo-400 dark:bg-purple-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                            <div class="w-2 h-2 bg-indigo-400 dark:bg-purple-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        </div>
+                        <span class="text-sm text-gray-600 dark:text-white">Analisando dados...</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removerCarregamento() {
+        const loadingMessage = document.getElementById('loading-message');
+        if (loadingMessage) {
+            loadingMessage.remove();
+        }
+    }
+</script>
+{% endblock %}

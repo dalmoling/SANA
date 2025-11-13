@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SANA - Sistema de Análise de Notas Acadêmicas{% endblock %}</title>
+    
+    <!-- CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Sistema de Autenticação
+        function getAuthToken() {
+            return localStorage.getItem('access_token');
+        }
+
+        function setAuthHeaders(headers = {}) {
+            const token = getAuthToken();
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            return headers;
+        }
+
+        function handleAuthError(response) {
+            if (response.status === 401) {
+                localStorage.removeItem('access_token');
+                window.location.href = '/login';
+                return true;
+            }
+            return false;
+        }
+
+        // Verificar token na inicialização
+        window.addEventListener('load', function() {
+            const token = getAuthToken();
+            const currentPath = window.location.pathname;
+
+            console.log('Verificando autenticação...');
+            console.log('Token presente:', !!token);
+            console.log('Caminho atual:', currentPath);
+
+            // Se não tem token e não está na página de login, redirecionar
+            if (!token && currentPath !== '/login') {
+                console.log('Sem token, redirecionando para login...');
+                window.location.href = '/login';
+                return;
+            }
+
+            // Se tem token e está na página de login, redirecionar para dashboard
+            if (token && currentPath === '/login') {
+                console.log('Token presente na página de login, redirecionando para dashboard...');
+                window.location.href = '/';
+                return;
+            }
+
+            // Verificar carregamento do Plotly
+            console.log('Página carregada');
+            console.log('Plotly disponível:', typeof Plotly !== 'undefined');
+            console.log('Chart.js disponível:', typeof Chart !== 'undefined');
+
+            if (typeof Plotly === 'undefined') {
+                console.error('Plotly não carregou, usando Chart.js como fallback');
+                window.useChartJS = true;
+            } else {
+                console.log('Plotly carregado com sucesso');
+                window.useChartJS = false;
+            }
+        });
+
+        // Função de logout
+        function logout() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                localStorage.removeItem('access_token');
+                window.location.href = '/login';
+            }
+        }
+    </script>
+    
+    <style>
+        /* Transições suaves para mudança de tema */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .dark-gradient-bg {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .dark .card-hover:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        .dark .loading-spinner {
+            border: 4px solid #374151;
+            border-top: 4px solid #8b5cf6;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+        }
+        .dark .stat-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 1px solid #475569;
+        }
+
+        .chat-message {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #475569;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .theme-toggle.active {
+            background: #8b5cf6;
+        }
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .theme-toggle.active::before {
+            transform: translateX(30px);
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* Plotly dark mode adjustments */
+        .dark .js-plotly-plot {
+            background-color: transparent !important;
+        }
+
+        /* Gráficos centralizados */
+        .grafico-container {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            height: 384px !important; /* h-96 = 24rem = 384px */
+            padding: 1rem !important;
+        }
+
+        .grafico-container .js-plotly-plot {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 auto !important;
+        }
+
+        .grafico-container canvas {
+            display: block !important;
+            margin: 0 auto !important;
+            max-width: calc(100% - 2rem) !important;
+            max-height: calc(100% - 2rem) !important;
+        }
+
+        /* Ajustes específicos para Plotly */
+        .js-plotly-plot .plotly {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .js-plotly-plot .svg-container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 dark:bg-dark-900 min-h-screen transition-all duration-300">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo/Título -->
+                <div class="flex-shrink-0">
+                    <h1 class="text-white text-xl font-bold">
+                        <i class="fas fa-graduation-cap mr-2"></i>
+                        SANA
+                    </h1>
+                </div>
+
+                <!-- Menu de Navegação -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="/" class="nav-link text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-chart-line mr-1"></i>
+                        Dashboard
+                    </a>
+                    <a href="/chatbot" class="nav-link text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'chatbot' %}active{% endif %}">
+                        <i class="fas fa-robot mr-1"></i>
+                        Chatbot
+                    </a>
+                    <a href="/consulta" class="nav-link text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'consulta' %}active{% endif %}">
+                        <i class="fas fa-user-graduate mr-1"></i>
+                        Consulta Alunos
+                    </a>
+                    <a href="/consulta-disciplina" class="nav-link text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'consulta_disciplina' %}active{% endif %}">
+                        <i class="fas fa-book-open mr-1"></i>
+                        Consulta Disciplinas
+                    </a>
+
+                    <!-- Menu de Coordenação -->
+                    <a href="/gerenciar-turmas" class="nav-link text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'gerenciar_turmas' %}active{% endif %}">
+                        <i class="fas fa-school mr-1"></i>
+                        Gerenciar Turmas
+                    </a>
+                    <a href="/comparar-turmas" class="nav-link text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'comparar_turmas' %}active{% endif %}">
+                        <i class="fas fa-chart-bar mr-1"></i>
+                      Turmas
+                    </a>
+                    <a href="/gerenciar-contas" class="nav-link text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'gerenciar_contas' %}active{% endif %}" id="link-gerenciar-contas">
+                        <i class="fas fa-users-cog mr-1"></i>
+                        Gerenciar Contas
+                    </a>
+                    <a href="/manual" class="nav-link text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'manual' %}active{% endif %}">
+                        <i class="fas fa-question-circle mr-1"></i>
+                        Guia de Ajuda
+                    </a>
+                </div>
+
+                <!-- Menu Mobile (Hamburger) -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-white hover:text-gray-300 focus:outline-none focus:text-gray-300">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+
+                    <!-- Controles do usuário -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Theme Toggle -->
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-sun text-white text-sm"></i>
+                            <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"></div>
+                            <i class="fas fa-moon text-white text-sm"></i>
+                        </div>
+
+                        <!-- Botão de Logout -->
+                        <button onclick="logout()"
+                                class="flex items-center px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/20">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            <span class="hidden sm:inline">Sair</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Mobile (oculto por padrão) -->
+            <div id="mobile-menu" class="md:hidden hidden">
+                <div class="px-2 pt-2 pb-3 space-y-1 bg-indigo-700 dark:bg-indigo-800">
+                    <a href="/" class="nav-link block text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-chart-line mr-2"></i>Dashboard
+                    </a>
+                    <a href="/chatbot" class="nav-link block text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'chatbot' %}active{% endif %}">
+                        <i class="fas fa-robot mr-2"></i>Chatbot
+                    </a>
+                    <a href="/consulta" class="nav-link block text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'consulta' %}active{% endif %}">
+                        <i class="fas fa-user-graduate mr-2"></i>Consulta Alunos
+                    </a>
+                    <a href="/consulta-disciplina" class="nav-link block text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'consulta_disciplina' %}active{% endif %}">
+                        <i class="fas fa-book-open mr-2"></i>Consulta Disciplinas
+                    </a>
+
+                    <a href="/gerenciar-turmas" class="nav-link block text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'gerenciar_turmas' %}active{% endif %}">
+                        <i class="fas fa-school mr-2"></i>Gerenciar Turmas
+                    </a>
+                    <a href="/comparar-turmas" class="nav-link block text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'comparar_turmas' %}active{% endif %}">
+                        <i class="fas fa-chart-bar mr-2"></i>Comparar Turmas
+                    </a>
+                    <a href="/gerenciar-contas" class="nav-link block text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'gerenciar_contas' %}active{% endif %}" id="link-gerenciar-contas-mobile">
+                        <i class="fas fa-users-cog mr-2"></i>Gerenciar Contas
+                    </a>
+                    <a href="/manual" class="nav-link block text-white px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'manual' %}active{% endif %}">
+                        <i class="fas fa-question-circle mr-2"></i>Guia de Ajuda
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-dark-800 border-t border-gray-200 dark:border-dark-600 mt-12">
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-gray-500 dark:text-dark-400 text-sm">
+                <p>© 2025 SANA - Sistema de Análise de Notas Acadêmicas</p>
+                <p class="mt-1">Desenvolvido com <i class="fas fa-heart text-red-500 dark:text-red-400"></i> para educação</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <script>
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-toggle').classList.add('active');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-toggle').classList.remove('active');
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const toggle = document.getElementById('theme-toggle');
+
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                toggle.classList.remove('active');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                toggle.classList.add('active');
+                localStorage.setItem('theme', 'dark');
+            }
+
+            // Recarregar gráficos com novo tema se existirem
+            setTimeout(() => {
+                if (typeof carregarGraficos === 'function') {
+                    carregarGraficos();
+                }
+            }, 300);
+        }
+
+        // Função para obter configuração de tema do Plotly
+        function getPlotlyTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            return {
+                paper_bgcolor: isDark ? '#1e293b' : '#ffffff',
+                plot_bgcolor: isDark ? '#334155' : '#ffffff',
+                font: {
+                    color: isDark ? '#e2e8f0' : '#374151',
+                    family: 'Inter, system-ui, sans-serif'
+                },
+                colorway: isDark ?
+                    ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'] :
+                    ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'],
+                xaxis: {
+                    gridcolor: isDark ? '#475569' : '#e5e7eb',
+                    linecolor: isDark ? '#64748b' : '#d1d5db',
+                    tickcolor: isDark ? '#64748b' : '#d1d5db',
+                    titlefont: { color: isDark ? '#e2e8f0' : '#374151' },
+                    tickfont: { color: isDark ? '#cbd5e1' : '#6b7280' }
+                },
+                yaxis: {
+                    gridcolor: isDark ? '#475569' : '#e5e7eb',
+                    linecolor: isDark ? '#64748b' : '#d1d5db',
+                    tickcolor: isDark ? '#64748b' : '#d1d5db',
+                    titlefont: { color: isDark ? '#e2e8f0' : '#374151' },
+                    tickfont: { color: isDark ? '#cbd5e1' : '#6b7280' }
+                }
+            };
+        }
+
+        // Initialize theme on page load
+        document.addEventListener('DOMContentLoaded', initTheme);
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                initTheme();
+            }
+        });
+
+        // Controle do menu mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+
+                    // Alterar ícone do botão
+                    const icon = mobileMenuButton.querySelector('i');
+                    if (mobileMenu.classList.contains('hidden')) {
+                        icon.className = 'fas fa-bars text-xl';
+                    } else {
+                        icon.className = 'fas fa-times text-xl';
+                    }
+                });
+
+                // Fechar menu ao clicar em um link
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        mobileMenu.classList.add('hidden');
+                        const icon = mobileMenuButton.querySelector('i');
+                        icon.className = 'fas fa-bars text-xl';
+                    });
+                });
+            }
+
+            // Verificar se usuário é admin e mostrar/ocultar link de gerenciar contas
+            verificarPermissoesMenu();
+        });
+
+        function verificarPermissoesMenu() {
+            const token = getAuthToken();
+            if (!token) return;
+
+            try {
+                // Decodificar JWT (payload está na segunda parte)
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const isAdmin = payload.is_admin || false;
+
+                // Mostrar/ocultar link de gerenciar contas
+                const linkGerenciarContas = document.getElementById('link-gerenciar-contas');
+                const linkGerenciarContasMobile = document.getElementById('link-gerenciar-contas-mobile');
+
+                if (!isAdmin) {
+                    if (linkGerenciarContas) linkGerenciarContas.style.display = 'none';
+                    if (linkGerenciarContasMobile) linkGerenciarContasMobile.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Erro ao verificar permissões:', e);
+            }
+        }
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

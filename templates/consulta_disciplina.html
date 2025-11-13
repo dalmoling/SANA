@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Consulta por Disciplina - Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-0">
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">📚 Consulta por Disciplina</h1>
+            <p class="mt-2 text-gray-600 dark:text-dark-300">Consulte o desempenho de todos os alunos em uma disciplina específica</p>
+        </div>
+        <!-- Indicador de Trimestre -->
+        <div id="indicador-trimestre-disciplina" class="hidden">
+            <span id="badge-trimestre-disciplina" class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold">
+                <i class="fas fa-calendar-alt mr-1.5"></i>
+                <span id="texto-trimestre-disciplina">Carregando...</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Formulário de Consulta -->
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl p-6 mb-8 border border-gray-200 dark:border-dark-600">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+                <label for="select-disciplina" class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                    Selecione uma disciplina:
+                </label>
+                <select id="select-disciplina" class="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:border-transparent">
+                    <option value="">Carregando disciplinas...</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button
+                    id="btn-consultar"
+                    onclick="consultarDisciplina()"
+                    class="px-6 py-3 bg-indigo-600 dark:bg-purple-600 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-purple-700 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-dark-800 transition-colors duration-200 flex items-center space-x-2"
+                >
+                    <i class="fas fa-search"></i>
+                    <span>Consultar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultado da Consulta -->
+    <div id="resultado-consulta" style="display: none;">
+        <!-- Será preenchido dinamicamente -->
+    </div>
+
+    <!-- Instruções -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-6">
+        <div class="flex items-start space-x-3">
+            <i class="fas fa-info-circle text-blue-600 dark:text-blue-400 mt-1"></i>
+            <div>
+                <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Como usar a consulta</h3>
+                <ul class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                    <li>• Selecione uma disciplina da lista suspensa</li>
+                    <li>• Clique em "Consultar" para ver o desempenho de todos os alunos</li>
+                    <li>• Visualize as estatísticas gerais da disciplina</li>
+                    <li>• Analise o ranking dos alunos por desempenho</li>
+                    <li>• As cores indicam: <span class="text-green-600 font-medium">Verde (Aprovado)</span>, <span class="text-yellow-600 font-medium">Amarelo (Recuperação)</span>, <span class="text-red-600 font-medium">Vermelho (Reprovado)</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Carregar disciplinas ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+        carregarDisciplinas();
+        carregarInfoTrimestreDisciplina();
+    });
+
+    function setAuthHeaders() {
+        // O JWT está sendo enviado automaticamente via cookies
+        // Não precisamos definir Authorization header manualmente
+        return {};
+    }
+
+    function handleAuthError(response) {
+        if (response.status === 401) {
+            alert('Sessão expirada. Redirecionando para login...');
+            window.location.href = '/login';
+            return true;
+        }
+        return false;
+    }
+
+    function carregarDisciplinas() {
+        fetch('/api/lista-disciplinas', {
+            headers: setAuthHeaders()
+        })
+            .then(response => {
+                if (handleAuthError(response)) return;
+                return response.json();
+            })
+            .then(disciplinas => {
+                const select = document.getElementById('select-disciplina');
+                select.innerHTML = '<option value="">Selecione uma disciplina...</option>';
+                
+                disciplinas.forEach(disciplina => {
+                    const option = document.createElement('option');
+                    option.value = disciplina;
+                    option.textContent = disciplina;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Erro ao carregar disciplinas:', error);
+                document.getElementById('select-disciplina').innerHTML = '<option value="">Erro ao carregar disciplinas</option>';
+            });
+    }
+
+    function consultarDisciplina() {
+        const nomeDisciplina = document.getElementById('select-disciplina').value;
+        const resultadoDiv = document.getElementById('resultado-consulta');
+        
+        if (!nomeDisciplina) {
+            alert('Por favor, selecione uma disciplina.');
+            return;
+        }
+
+        // Mostrar loading
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.innerHTML = `
+            <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl p-8 text-center border border-gray-200 dark:border-dark-600">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-gray-600 dark:text-white">Carregando dados da disciplina...</p>
+            </div>
+        `;
+
+        fetch(`/api/consulta-disciplina?disciplina=${encodeURIComponent(nomeDisciplina)}`, {
+            headers: setAuthHeaders()
+        })
+            .then(response => {
+                if (handleAuthError(response)) return;
+                return response.json();
+            })
+            .then(data => {
+                if (data.erro) {
+                    resultadoDiv.innerHTML = `
+                        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400"></i>
+                                <p class="text-red-800 dark:text-red-200">${data.erro}</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderizarResultadoDisciplina(data);
+            })
+            .catch(error => {
+                console.error('Erro ao consultar disciplina:', error);
+                resultadoDiv.innerHTML = `
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400"></i>
+                            <p class="text-red-800 dark:text-red-200">Erro ao carregar dados da disciplina</p>
+                        </div>
+                    </div>
+                `;
+            });
+    }
+
+    function renderizarResultadoDisciplina(data) {
+        // Determinar cor da média geral
+        let corMedia = 'text-red-600 dark:text-red-400';
+        if (data.media_geral >= 6.0) corMedia = 'text-green-600 dark:text-green-400';
+        else if (data.media_geral >= 4.0) corMedia = 'text-yellow-600 dark:text-yellow-400';
+
+        let html = `
+            <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg dark:shadow-2xl overflow-hidden border border-gray-200 dark:border-dark-600">
+                <!-- Header da Disciplina -->
+                <div class="gradient-bg dark:dark-gradient-bg px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-white flex items-center">
+                                <i class="fas fa-book mr-2"></i>
+                                ${data.disciplina}
+                            </h2>
+                            <p class="text-white opacity-90">Relatório de Desempenho da Turma</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-white opacity-90 text-sm">Média da Turma</p>
+                            <p class="text-2xl font-bold text-white">${data.media_geral}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estatísticas Resumo -->
+                <div class="p-6 border-b border-gray-200 dark:border-dark-600 bg-gray-50 dark:bg-dark-900">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div class="text-center p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-600">
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">${data.aprovados}</div>
+                            <div class="text-sm text-gray-600 dark:text-dark-300">Aprovados</div>
+                        </div>
+                        <div class="text-center p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-600">
+                            <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">${data.recuperacao}</div>
+                            <div class="text-sm text-gray-600 dark:text-dark-300">Recuperação</div>
+                        </div>
+                        <div class="text-center p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-600">
+                            <div class="text-2xl font-bold text-red-600 dark:text-red-400">${data.reprovados}</div>
+                            <div class="text-sm text-gray-600 dark:text-dark-300">Reprovados</div>
+                        </div>
+                        <div class="text-center p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-600">
+                            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">${data.total_alunos}</div>
+                            <div class="text-sm text-gray-600 dark:text-dark-300">Total Alunos</div>
+                        </div>
+                        <div class="text-center p-4 bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-600">
+                            <div class="text-2xl font-bold ${corMedia}">${data.media_geral}</div>
+                            <div class="text-sm text-gray-600 dark:text-dark-300">Média Turma</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listas de Destaques -->
+                <div class="p-6 border-b border-gray-200 dark:border-dark-600">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Melhores Alunos -->
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-5 rounded-xl border border-green-200 dark:border-green-700">
+                            <h4 class="font-bold text-green-800 dark:text-green-200 mb-4 flex items-center text-lg">
+                                <i class="fas fa-trophy mr-2 text-yellow-500"></i>Top 5 Melhores Alunos
+                            </h4>
+                            <div class="space-y-3" id="top-alunos-lista">
+                                <!-- Será preenchido dinamicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Alunos que Precisam de Atenção -->
+                        <div class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 p-5 rounded-xl border border-red-200 dark:border-red-700">
+                            <h4 class="font-bold text-red-800 dark:text-red-200 mb-4 flex items-center text-lg">
+                                <i class="fas fa-exclamation-triangle mr-2 text-orange-500"></i>Precisam de Atenção
+                            </h4>
+                            <div class="space-y-3" id="atencao-alunos-lista">
+                                <!-- Será preenchido dinamicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ranking de Alunos -->
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Ranking dos Alunos</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-dark-600">
+                            <thead class="bg-gray-50 dark:bg-dark-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">Posição</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">Aluno</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">1º Trimestre</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">2º Trimestre</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">3º Trimestre</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">Média</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">Situação</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-dark-800 divide-y divide-gray-200 dark:divide-dark-600">
+        `;
+
+        data.alunos.forEach((aluno, index) => {
+            const bgColor = index % 2 === 0 ? 'bg-white dark:bg-dark-800' : 'bg-gray-50 dark:bg-dark-700';
+
+            let corSituacao = 'text-red-600 dark:text-red-300 bg-red-100 dark:bg-red-900/30';
+            if (aluno.status === 'Aprovado') corSituacao = 'text-green-600 dark:text-green-300 bg-green-100 dark:bg-green-900/30';
+            else if (aluno.status === 'Recuperação') corSituacao = 'text-yellow-600 dark:text-yellow-300 bg-yellow-100 dark:bg-yellow-900/30';
+
+            let corMedia = 'text-red-600 dark:text-red-400';
+            if (aluno.media >= 6.0) corMedia = 'text-green-600 dark:text-green-400';
+            else if (aluno.media >= 4.0) corMedia = 'text-yellow-600 dark:text-yellow-400';
+
+            // Ícone da posição
+            let iconePos = `<span class="text-gray-500">${index + 1}º</span>`;
+            if (index === 0) iconePos = '<i class="fas fa-trophy text-yellow-500"></i>';
+            else if (index === 1) iconePos = '<i class="fas fa-medal text-gray-400"></i>';
+            else if (index === 2) iconePos = '<i class="fas fa-award text-orange-400"></i>';
+
+            html += `
+                <tr class="${bgColor}">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center">${iconePos}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${aluno.nome}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-dark-300 text-center">${aluno.notas_trimestres[0] !== null ? aluno.notas_trimestres[0] : '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-dark-300 text-center">${aluno.notas_trimestres[1] !== null ? aluno.notas_trimestres[1] : '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-dark-300 text-center">${aluno.notas_trimestres[2] !== null ? aluno.notas_trimestres[2] : '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${corMedia} text-center">${aluno.media}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${corSituacao}">
+                            ${aluno.status}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('resultado-consulta').innerHTML = html;
+
+        // Preencher listas de destaques
+        preencherListasDestaques(data);
+    }
+
+    function preencherListasDestaques(data) {
+        // Top 5 Melhores Alunos
+        const topAlunosContainer = document.getElementById('top-alunos-lista');
+        const top5Alunos = data.alunos.slice(0, 5); // Pegar os 5 primeiros (já ordenados por média)
+
+        let topHtml = '';
+        top5Alunos.forEach((aluno, index) => {
+            let medalha = '';
+            let corMedalha = '';
+
+            if (index === 0) {
+                medalha = '<i class="fas fa-trophy text-yellow-500"></i>';
+                corMedalha = 'border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20';
+            } else if (index === 1) {
+                medalha = '<i class="fas fa-medal text-gray-400"></i>';
+                corMedalha = 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800';
+            } else if (index === 2) {
+                medalha = '<i class="fas fa-award text-orange-400"></i>';
+                corMedalha = 'border-orange-200 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20';
+            } else {
+                medalha = `<span class="text-green-600 dark:text-green-400 font-bold">${index + 1}º</span>`;
+                corMedalha = 'border-green-200 dark:border-green-600 bg-white dark:bg-dark-800';
+            }
+
+            topHtml += `
+                <div class="flex items-center justify-between p-3 rounded-lg border ${corMedalha} transition-all duration-200 hover:shadow-md">
+                    <div class="flex items-center space-x-3">
+                        ${medalha}
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-white">${aluno.nome}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">Média: ${aluno.media}</p>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
+                        ${aluno.status}
+                    </span>
+                </div>
+            `;
+        });
+
+        topAlunosContainer.innerHTML = topHtml;
+
+        // Alunos que Precisam de Atenção (reprovados e recuperação)
+        const atencaoAlunosContainer = document.getElementById('atencao-alunos-lista');
+        const alunosAtencao = data.alunos.filter(aluno => aluno.status === 'Reprovado' || aluno.status === 'Recuperação')
+                                        .sort((a, b) => a.media - b.media) // Ordenar pelos piores primeiro
+                                        .slice(0, 5); // Máximo 5
+
+        let atencaoHtml = '';
+        if (alunosAtencao.length === 0) {
+            atencaoHtml = `
+                <div class="text-center py-4">
+                    <i class="fas fa-check-circle text-green-500 text-2xl mb-2"></i>
+                    <p class="text-green-700 dark:text-green-300 font-medium">Excelente!</p>
+                    <p class="text-sm text-green-600 dark:text-green-400">Todos os alunos estão aprovados</p>
+                </div>
+            `;
+        } else {
+            alunosAtencao.forEach((aluno, index) => {
+                let iconeStatus = '';
+                let corStatus = '';
+
+                if (aluno.status === 'Reprovado') {
+                    iconeStatus = '<i class="fas fa-times-circle text-red-500"></i>';
+                    corStatus = 'border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20';
+                } else {
+                    iconeStatus = '<i class="fas fa-exclamation-circle text-orange-500"></i>';
+                    corStatus = 'border-orange-200 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20';
+                }
+
+                atencaoHtml += `
+                    <div class="flex items-center justify-between p-3 rounded-lg border ${corStatus} transition-all duration-200 hover:shadow-md">
+                        <div class="flex items-center space-x-3">
+                            ${iconeStatus}
+                            <div>
+                                <p class="font-medium text-gray-900 dark:text-white">${aluno.nome}</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">Média: ${aluno.media}</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 ${aluno.status === 'Reprovado' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'} rounded-full text-xs font-medium">
+                            ${aluno.status}
+                        </span>
+                    </div>
+                `;
+            });
+        }
+
+        atencaoAlunosContainer.innerHTML = atencaoHtml;
+    }
+
+    function carregarInfoTrimestreDisciplina() {
+        fetch('/api/info-trimestre', { headers: setAuthHeaders() })
+            .then(response => response.json())
+            .then(data => {
+                if (data.erro) return;
+
+                document.getElementById('indicador-trimestre-disciplina').classList.remove('hidden');
+                const badge = document.getElementById('badge-trimestre-disciplina');
+                const texto = document.getElementById('texto-trimestre-disciplina');
+                texto.textContent = data.status;
+
+                badge.className = 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold';
+
+                if (data.trimestre_atual === 1) {
+                    badge.classList.add('bg-blue-100', 'text-blue-800', 'dark:bg-blue-900/30', 'dark:text-blue-300');
+                } else if (data.trimestre_atual === 2) {
+                    badge.classList.add('bg-purple-100', 'text-purple-800', 'dark:bg-purple-900/30', 'dark:text-purple-300');
+                } else if (data.trimestre_atual === 3 && data.status === "Ano Letivo Completo") {
+                    badge.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-900/30', 'dark:text-green-300');
+                } else {
+                    badge.classList.add('bg-indigo-100', 'text-indigo-800', 'dark:bg-indigo-900/30', 'dark:text-indigo-300');
+                }
+            })
+            .catch(error => console.error('Erro ao carregar info trimestre:', error));
+    }
+</script>
+{% endblock %}

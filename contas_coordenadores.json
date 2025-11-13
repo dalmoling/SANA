@@ -1,0 +1,26 @@
+{
+  "coordenador": {
+    "password_hash": "82dfcc508c59eb1706c2e793f938295562d0c43fb71aacb44102543c538bd5ae",
+    "role": "coordenador",
+    "name": "Coordenador Principal",
+    "email": "coordenador@ifc.edu.br",
+    "created_at": "2025-10-29T00:38:28.406159",
+    "is_admin": true
+  },
+  "coordenador2": {
+    "password_hash": "b772ed678b33e9866c1945362749d1e9d82287e659dca218a148a7125989f457",
+    "role": "coordenador",
+    "name": "coordenador2",
+    "email": "teste@emailcoordenador",
+    "created_at": "2025-11-13T00:31:48.312900",
+    "is_admin": true
+  },
+  "professor": {
+    "password_hash": "bc1f12dae4eded5bc6a976a10aff2b93f36b5b26dcdd22da485b2fecd4b3b119",
+    "role": "coordenador",
+    "name": "professor",
+    "email": "professor@teste",
+    "created_at": "2025-11-13T00:32:10.328946",
+    "is_admin": false
+  }
+}
