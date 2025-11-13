@@ -33,7 +33,7 @@ Facilitar o acompanhamento pedagógico através de:
 ##  Características
 
 ### 🤖 Chatbot Inteligente
-- Integração com **Google Gemini AI** (gemini-2.0-flash-exp)
+- Integração com **Google Gemini AI** (gemini-2.5-flash-lite)
 - Consultas em linguagem natural sobre dados acadêmicos
 - Respostas contextualizadas e precisas
 - Interface conversacional intuitiva
