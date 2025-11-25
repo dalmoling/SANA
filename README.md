@@ -119,11 +119,11 @@ http://localhost:8080
 
 ### Login Padrão
 
-**Coordenador:**
+**Coordenador  (ADM):**
 - Usuário: `coordenador`
 - Senha: `Coordenador@Ifc`
 
-**Professor:**
+**Professor (Não é ADM):**
 - Usuário: `professor`
 - Senha: `professor123`
 
