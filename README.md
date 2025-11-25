@@ -55,7 +55,6 @@ Facilitar o acompanhamento pedagógico através de:
 ### 🔐 Sistema de Autenticação
 - Login seguro com **JWT (JSON Web Tokens)**
 - Controle de acesso baseado em roles:
-  - **Professor**: Acesso a consultas e dashboard
   - **Coordenador**: Gerenciamento de turmas e comparações
   - **Admin**: Gerenciamento completo de contas
 
