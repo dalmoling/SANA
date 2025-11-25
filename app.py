@@ -1552,4 +1552,4 @@ def api_ranking_melhores_alunos():
 
 if __name__ == '__main__':
     # Configurar para aceitar conexões externas na porta 8080
-    app.run(host='10.13.1.125', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8080, debug=True)
